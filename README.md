@@ -8,24 +8,25 @@ Verified against:
 
 | Piece | Version |
 | --- | --- |
-| Grok Bot | 0.18.0 (`com.anysphere.sand`) |
+| Grok Bot | **0.24.0** (`com.anysphere.sand`); also 0.18.0 |
 | Electron | 42.1.0 (`NODE_MODULE_VERSION` / ABI **146**) |
 | Host | Intel Mac (Xeon), macOS |
+| Last converted | 2026-08-23 |
+
+Launch check on 0.24.0 Intel: main process, GPU helper, network utility, **renderer**, **local-exec-daemon**, and a ~1040×760 window. No Crashpad reports.
 
 ## Why this exists
 
-The 0.18.0 disk image published as `Grok_Bot_0.18.0.dmg` is **arm64-only**:
+The stable macOS disk image is **arm64-only**. Latest Apple silicon URL:
+
+`https://downloads.cursor.com/grokbot/stable/darwin-arm64/0.24.0/Grok_Bot_0.24.0.dmg`
 
 ```
 Grok Bot.app/Contents/MacOS/Grok Bot   Mach-O 64-bit executable arm64
 Electron Framework                     Mach-O 64-bit dynamically linked shared library arm64
 ```
 
-Docs mention a separate Intel download. At conversion time the Apple silicon URL worked:
-
-`https://downloads.cursor.com/grokbot/stable/darwin-arm64/0.18.0/Grok_Bot_0.18.0.dmg`
-
-The matching `darwin-x64` object returned HTTP 403 (S3 missing key). This recipe rebuilds an Intel app from the arm64 bundle instead.
+x.ai/bot still advertises an Intel “More downloads” flavor. The matching `darwin-x64` object for 0.24.0 returned HTTP 403 (same as 0.18.0). This recipe rebuilds an Intel app from the arm64 bundle instead.
 
 ## What you need
 
@@ -70,13 +71,13 @@ First launch may copy the app into `/Applications` (Squirrel). The result is **a
 7. Write the new SHA-256 into `Info.plist` → `ElectronAsarIntegrity`.
 8. Ad-hoc codesign inside-out with `entitlements.plist`.
 
-`sand-op-launcher` and `sand-webauthn-signer` in 0.18.0 are already universal binaries; they are left as-is.
+`sand-op-launcher` and `sand-webauthn-signer` in 0.18.0 and 0.24.0 are already universal binaries; they are left as-is.
 
 ## Native modules
 
-| Module | In 0.18.0 arm64 app | Intel source | Notes |
+| Module | In arm64 app (0.18.0 / 0.24.0) | Intel source | Notes |
 | --- | --- | --- | --- |
-| `better-sqlite3` 12.6.2 | `build/Release/better_sqlite3.node` (V8 addon, not N-API) | [WiseLibs prebuild](https://github.com/WiseLibs/better-sqlite3/releases) `v12.12.0` `electron-v146-darwin-x64` | 12.6.2 has no ABI 146 prebuild and **does not compile** against Electron 42’s V8 (`External::Value` / `External::New` arity). 12.12.0 loads with the shipped 12.6.x JS. |
+| `better-sqlite3` 12.6.2 (still in 0.24.0) | `build/Release/better_sqlite3.node` (V8 addon, not N-API) | [WiseLibs prebuild](https://github.com/WiseLibs/better-sqlite3/releases) `v12.12.0` `electron-v146-darwin-x64` | 12.6.2 has no ABI 146 prebuild and **does not compile** against Electron 42’s V8 (`External::Value` / `External::New` arity). 12.12.0 loads with the shipped 12.6.x JS. |
 | `tree-sitter` 0.21.1 | `build/Release/tree_sitter_runtime_binding.node` | Cursor `cursor-agent-exec` (N-API, same version) | |
 | `tree-sitter-bash` 0.21.0 | `prebuilds/darwin-arm64/` | Cursor `cursor-agent-exec` (N-API, same version) | Also written to `prebuilds/darwin-x64/` and `build/Release/` so `node-gyp-build` finds it. |
 | `whichlang-node` 0.2.1 | optional dep `whichlang-node-darwin-arm64` | npm `whichlang-node-darwin-x64@0.2.1` plus Cursor’s `darwin-universal` | Loader lives in `dist/deps`; `NODE_PATH` is set to that folder. |
