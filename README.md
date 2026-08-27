@@ -1,32 +1,52 @@
-# Convert Grok Bot.app to Intel macOS
+# Grok Bot on Intel macOS
 
-Recipe and script for turning an **Apple silicon** Grok Bot desktop app into an **Intel (`x86_64`)** app.
+## Prefer the official Intel build (current)
+
+As of **0.29.0** (2026-08-27), Cursor publishes a notarized Intel DMG. Use that instead of converting:
+
+```text
+https://downloads.cursor.com/sand/stable/darwin-x64/0.29.0/Grok_Bot_0.29.0_x64.dmg
+```
+
+Same file also exists under `downloads.cursor.com/grokbot/stable/darwin-x64/0.29.0/`. SHA-256:
+
+```text
+65d1759109ef1a8741a41cba042de223afb58f21538b08f4199682ad2747aed3
+```
+
+Latest version (update feed):
+
+```bash
+curl -sL "https://api2.cursor.sh/updates/api/update/darwin-x64/sand/0.0.0/stable"
+# {"url":".../darwin/x64/Cursor-darwin-x64.zip","name":"0.29.0"}
+```
+
+Verified here: Developer ID `Anysphere Incorporated (DCNK4UB866)`, stapled notarization, Gatekeeper `accepted`. Launch showed main, GPU, renderer, local-exec daemon, and a ~1194×1056 window.
+
+Apple silicon URL for the same version:
+
+```text
+https://downloads.cursor.com/sand/stable/darwin-arm64/0.29.0/Grok_Bot_0.29.0.dmg
+```
+
+---
+
+## Convert an Apple-silicon `.app` when no Intel DMG exists
+
+Recipe and script for turning an **Apple silicon** Grok Bot desktop app into an **Intel (`x86_64`)** app. Needed for 0.18.0 / 0.24.0, when `darwin-x64` returned HTTP 403.
 
 This repository does **not** contain Grok Bot, Electron, or any Cursor/SpaceXAI native binaries. You must already have a licensed Grok Bot.app (and a Cursor.app used as a native-module donor).
 
-Verified against:
+Verified conversions:
 
 | Piece | Version |
 | --- | --- |
-| Grok Bot | **0.24.0** (`com.anysphere.sand`); also 0.18.0 |
+| Grok Bot | 0.18.0, 0.24.0 (`com.anysphere.sand`) |
 | Electron | 42.1.0 (`NODE_MODULE_VERSION` / ABI **146**) |
 | Host | Intel Mac (Xeon), macOS |
-| Last converted | 2026-08-23 |
+| Last converted | 0.24.0 on 2026-08-23 |
 
-Launch check on 0.24.0 Intel: main process, GPU helper, network utility, **renderer**, **local-exec-daemon**, and a ~1040×760 window. No Crashpad reports.
-
-## Why this exists
-
-The stable macOS disk image is **arm64-only**. Latest Apple silicon URL:
-
-`https://downloads.cursor.com/grokbot/stable/darwin-arm64/0.24.0/Grok_Bot_0.24.0.dmg`
-
-```
-Grok Bot.app/Contents/MacOS/Grok Bot   Mach-O 64-bit executable arm64
-Electron Framework                     Mach-O 64-bit dynamically linked shared library arm64
-```
-
-x.ai/bot still advertises an Intel “More downloads” flavor. The matching `darwin-x64` object for 0.24.0 returned HTTP 403 (same as 0.18.0). This recipe rebuilds an Intel app from the arm64 bundle instead.
+0.24.0 converted Intel: main, GPU, renderer, local-exec daemon, window, no Crashpad reports.
 
 ## What you need
 
